@@ -1,9 +1,8 @@
-# Шаг 1: Используем официальный образ Go для сборки приложения
 FROM golang:1.19 AS build
 WORKDIR /app
 COPY . .
-RUN if [ ! -f go.mod ]; then go mod init babka_bot && go mod tidy; fi
-RUN go build -o bot .
+RUN go mod init babka_bot || true && go mod tidy
+RUN go build -o bot ./main.go
 FROM debian:buster-slim
 WORKDIR /app
 COPY --from=build /app/bot /app/

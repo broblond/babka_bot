@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
 	"gopkg.in/telebot.v3"
@@ -17,7 +19,7 @@ func daysSince() int {
 
 func sendMessage(b *telebot.Bot, chatID int64) {
 	days := daysSince()
-	message := fmt.Sprintf("Маша не выходит замуж уже %d дней", days)
+	message := fmt.Sprintf("Маша не выходит замужем %d дней", days)
 	_, err := b.Send(telebot.ChatID(chatID), message)
 	if err != nil {
 		log.Printf("Error sending message: %v", err)
@@ -34,8 +36,20 @@ func waitUntilNoon() time.Duration {
 }
 
 func main() {
-	token := "YOUR_TELEGRAM_BOT_API_TOKEN"
-	chatID := int64(YOUR_CHAT_ID)
+	token := os.Getenv("TELEGRAM_TOKEN")
+	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID")
+
+	if token == "" {
+		log.Fatal("TELEGRAM_TOKEN is not set")
+	}
+	if chatIDStr == "" {
+		log.Fatal("TELEGRAM_CHAT_ID is not set")
+	}
+
+	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	if err != nil {
+		log.Fatalf("Invalid TELEGRAM_CHAT_ID: %v", err)
+	}
 
 	b, err := telebot.NewBot(telebot.Settings{
 		Token:  token,
