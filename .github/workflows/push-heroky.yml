@@ -1,0 +1,30 @@
+name: Deploy to Heroku
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Heroku CLI
+      run: |
+        curl https://cli-assets.heroku.com/install.sh | sh
+        heroku --version
+
+    - name: Log in to Heroku
+      run: echo "$HEROKU_API_KEY" | heroku auth:token
+
+    - name: Set Heroku environment variables
+      run: |
+        heroku config:set TELEGRAM_TOKEN=$TELEGRAM_TOKEN TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID --app $HEROKU_APP_NAME
+    - name: Deploy to Heroku
+      run: |
+        git remote add heroku https://git.heroku.com/$HEROKU_APP_NAME.git
+        git push heroku master
