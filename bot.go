@@ -17,7 +17,7 @@ func daysSince() int {
 
 func sendMessage(b *telebot.Bot, chatID int64) {
 	days := daysSince()
-	message := fmt.Sprintf("Маша не выходит замужем %d дней", days)
+	message := fmt.Sprintf("Маша не выходит замуж уже %d дней", days)
 	_, err := b.Send(telebot.ChatID(chatID), message)
 	if err != nil {
 		log.Printf("Error sending message: %v", err)
