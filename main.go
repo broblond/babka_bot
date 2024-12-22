@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -23,10 +24,10 @@ func sendMessage(bot *telebot.Bot, targetDate time.Time, chatID int64) {
 }
 
 func main() {
-	token := os.Getenv("TELEGRAM_BOT_TOKEN")   // Токен вашего бота
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")   // Токен  бота
 	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID") // ID чата, в который бот будет отправлять сообщения
 
-	chatID, err := fmt.Sscanf(chatIDStr, "%d", &chatID)
+	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
 	if err != nil {
 		fmt.Println("Error parsing chat ID:", err)
 		return
@@ -46,7 +47,7 @@ func main() {
 
 	bot.Handle("/skolko", func(c telebot.Context) error {
 		daysSince := calculateDaysSince(targetDate)
-		message := fmt.Sprintf("Маша не выходит замужем %d дней", daysSince)
+		message := fmt.Sprintf("Маша не выходит замуж %d дней", daysSince)
 
 		return c.Send(message)
 	})
@@ -61,6 +62,7 @@ func main() {
 		fmt.Println("Error setting up cron job:", err)
 		return
 	}
+
 	c.Start()
 
 	bot.Start()
