@@ -16,6 +16,9 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: 1.23
+    - name: get lib
+      run: |
+        go get gopkg.in/telebot.v3
     - name: Cache Go modules
       uses: actions/cache@v3
       with:
