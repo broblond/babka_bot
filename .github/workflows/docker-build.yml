@@ -18,7 +18,7 @@ jobs:
         go-version: 1.23
     - name: get lib
       run: |
-        go install gopkg.in/telebot.v3
+        go install gopkg.in/telebot.v3@latest
     - name: Cache Go modules
       uses: actions/cache@v3
       with:
