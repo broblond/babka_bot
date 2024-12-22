@@ -2,66 +2,66 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"strconv"
 	"time"
 
+	"github.com/robfig/cron/v3"
 	"gopkg.in/telebot.v3"
 )
 
-func daysSince() int {
-	startDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC)
-	now := time.Now()
-	duration := now.Sub(startDate)
-	return int(duration.Hours() / 24)
+func calculateDaysSince(targetDate time.Time) int {
+	currentDate := time.Now()
+	diff := currentDate.Sub(targetDate)
+	return int(diff.Hours() / 24)
 }
 
-func sendMessage(b *telebot.Bot, chatID int64) {
-	days := daysSince()
-	message := fmt.Sprintf("Маша не выходит замужем %d дней", days)
-	_, err := b.Send(telebot.ChatID(chatID), message)
-	if err != nil {
-		log.Printf("Error sending message: %v", err)
-	}
-}
+func sendMessage(bot *telebot.Bot, targetDate time.Time, chatID int64) {
+	daysSince := calculateDaysSince(targetDate)
+	message := fmt.Sprintf("Маша не выходит замужем %d дней", daysSince)
 
-func waitUntilNoon() time.Duration {
-	now := time.Now()
-	nextNoon := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
-	if now.After(nextNoon) {
-		nextNoon = nextNoon.Add(24 * time.Hour)
-	}
-	return time.Until(nextNoon)
+	bot.Send(&telebot.Chat{ID: chatID}, message)
 }
 
 func main() {
-	token := os.Getenv("TELEGRAM_TOKEN")
-	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID")
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")   // Токен вашего бота
+	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID") // ID чата, в который бот будет отправлять сообщения
 
-	if token == "" {
-		log.Fatal("TELEGRAM_TOKEN is not set")
-	}
-	if chatIDStr == "" {
-		log.Fatal("TELEGRAM_CHAT_ID is not set")
-	}
-
-	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	chatID, err := fmt.Sscanf(chatIDStr, "%d", &chatID)
 	if err != nil {
-		log.Fatalf("Invalid TELEGRAM_CHAT_ID: %v", err)
-	}
-
-	b, err := telebot.NewBot(telebot.Settings{
-		Token:  token,
-		Poller: &telebot.LongPoller{Timeout: 10 * time.Second},
-	})
-	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error parsing chat ID:", err)
 		return
 	}
 
-	for {
-		time.Sleep(waitUntilNoon())
-		sendMessage(b, chatID)
+	targetDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC)
+
+	bot, err := telebot.NewBot(telebot.Settings{
+		Token:  token,
+		Poller: &telebot.LongPoller{Timeout: 10 * time.Second},
+	})
+
+	if err != nil {
+		fmt.Println("Error creating bot:", err)
+		return
 	}
+
+	bot.Handle("/skolko", func(c telebot.Context) error {
+		daysSince := calculateDaysSince(targetDate)
+		message := fmt.Sprintf("Маша не выходит замужем %d дней", daysSince)
+
+		return c.Send(message)
+	})
+
+	c := cron.New(cron.WithLocation(time.FixedZone("MSK", 3*60*60))) // Московское время
+
+	_, err = c.AddFunc("0 12 * * *", func() {
+		sendMessage(bot, targetDate, chatID)
+	})
+
+	if err != nil {
+		fmt.Println("Error setting up cron job:", err)
+		return
+	}
+	c.Start()
+
+	bot.Start()
 }
