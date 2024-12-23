@@ -16,13 +16,24 @@ func calculateDaysSince(targetDate time.Time) int {
 	return int(diff.Hours() / 24)
 }
 
+func calculateDaysSinceSokr(sokrDate time.Time)int {
+	currentDate := time.Now()
+	diff := currentDate.Sub(sokrDate)
+	return int(diff.Hours() / 24)
+}
+
 func sendMessage(bot *telebot.Bot, targetDate time.Time, chatID int64) {
 	daysSince := calculateDaysSince(targetDate)
-	message := fmt.Sprintf("Маша не выходит замужем %d дней", daysSince)
+	message := fmt.Sprintf("Маша не выходит замуж %d дней", daysSince)
 
 	bot.Send(&telebot.Chat{ID: chatID}, message)
 }
+func sendMessage(bot *telebot.Bot, sokrDate time.Time, chatID int64) {
+	daysSince := calculateDaysSince(sokrDate)
+	message := fmt.Sprintf("Дилару не сокращают %d дней", daysSince)
 
+	bot.Send(&telebot.Chat{ID: chatID}, message)
+}
 func main() {
 	token := os.Getenv("TELEGRAM_BOT_TOKEN")   // Токен  бота
 	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID") // ID чата, в который бот будет отправлять сообщения
@@ -34,6 +45,7 @@ func main() {
 	}
 
 	targetDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC)
+	sokrDate := time.Date(2024, time.December, 19, 0, 0, 0, 0, time.UTC)
 
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  token,
@@ -48,6 +60,13 @@ func main() {
 	bot.Handle("/skolko", func(c telebot.Context) error {
 		daysSince := calculateDaysSince(targetDate)
 		message := fmt.Sprintf("Маша не выходит замуж %d дней", daysSince)
+
+		return c.Send(message)
+	})
+	
+	bot.Handle("/sokr", func(c telebot.Context) error {
+		daysSince := calculateDaysSinceSokr(sokrDate)
+		message := fmt.Sprintf("Дилару не сокращают %d дней", daysSince)
 
 		return c.Send(message)
 	})
