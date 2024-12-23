@@ -30,9 +30,9 @@ func sendMessage(bot *telebot.Bot, targetDate time.Time, chatID int64) {
 }
 func sendMessage(bot *telebot.Bot, sokrDate time.Time, chatID int64) {
 	daysSince := calculateDaysSince(sokrDate)
-	message := fmt.Sprintf("Дилару не сокращают %d дней", daysSince)
+	message2 := fmt.Sprintf("Дилару не сокращают %d дней", daysSince)
 
-	bot.Send(&telebot.Chat{ID: chatID}, message)
+	bot.Send(&telebot.Chat{ID: chatID}, message2)
 }
 func main() {
 	token := os.Getenv("TELEGRAM_BOT_TOKEN")   // Токен  бота
