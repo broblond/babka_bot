@@ -16,6 +16,12 @@ func calculateDaysSince(targetDate time.Time) int {
 	return int(diff.Hours() / 24)
 }
 
+func calculateDaysTill(targetDate time.Time) int {
+	currentDate := time.Now()
+	diff := targetDate.Sub(currentDate)
+	return int(diff.Hours() / 24)
+}
+
 func sendMessage(bot *telebot.Bot, targetDate time.Time, messageText string, chatID int64) {
 	daysSince := calculateDaysSince(targetDate)
 	message := fmt.Sprintf(messageText, daysSince)
@@ -33,7 +39,7 @@ func main() {
 	}
 
 	targetDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC) 
-	sokrDate := time.Date(2024, time.December, 19, 0, 0, 0, 0, time.UTC) 
+	sokrDate := time.Date(2025, time.June, 10, 0, 0, 0, 0, time.UTC) 
 
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  token,
@@ -52,7 +58,7 @@ func main() {
 	})
 
 	bot.Handle("/sokr", func(c telebot.Context) error {
-		daysSince := calculateDaysSince(sokrDate)
+		daysSince := calculateDaysTill(sokrDate)
 		message := fmt.Sprintf("Дилару не сокращают %d дней", daysSince)
 		return c.Send(message)
 	})
@@ -60,7 +66,7 @@ func main() {
 	c := cron.New(cron.WithLocation(time.FixedZone("MSK", 3*60*60))) 
 	_, err = c.AddFunc("0 12 * * *", func() {
 		sendMessage(bot, targetDate, "Маша не выходит замуж %d дней", chatID)
-		sendMessage(bot, sokrDate, "Дилару не сокращают %d дней", chatID)
+		sendMessage(bot, sokrDate, "Диларе до конца испыталки %d дней", chatID)
 	})
 
 	if err != nil {
