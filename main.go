@@ -59,7 +59,7 @@ func main() {
 
 	bot.Handle("/sokr", func(c telebot.Context) error {
 		daysSince := calculateDaysTill(sokrDate)
-		message := fmt.Sprintf("Дилару не сокращают %d дней", daysSince)
+		message := fmt.Sprintf("Диларе до конца испыталки %d дней", daysSince)
 		return c.Send(message)
 	})
 
