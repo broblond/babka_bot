@@ -18,28 +18,39 @@ func calculateDaysSince(targetDate time.Time) int {
 
 func calculateDaysTill(targetDate time.Time) int {
 	currentDate := time.Now()
-	diff := targetDate.Sub(currentDate)
+	var diff time.Duration
+	if targetDate.After(currentDate) {
+		diff = targetDate.Sub(currentDate)
+	} else {
+		diff = currentDate.Sub(targetDate)
+	}
 	return int(diff.Hours() / 24)
 }
 
-func sendMessage(bot *telebot.Bot, targetDate time.Time, messageText string, chatID int64) {
-	daysSince := calculateDaysSince(targetDate)
-	message := fmt.Sprintf(messageText, daysSince)
+func sendMessage(bot *telebot.Bot, targetDate time.Time, userType string, messageText string, chatID int64) {
+	var days int
+	if userType == "Masha" {
+		days = calculateDaysSince(targetDate)
+	} else {
+		days = calculateDaysTill(targetDate)
+	}
 
+	message := fmt.Sprintf(messageText, days)
 	bot.Send(&telebot.Chat{ID: chatID}, message)
 }
 
 func main() {
-	token := os.Getenv("TELEGRAM_BOT_TOKEN")   
-	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID") 
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	chatIDStr := os.Getenv("TELEGRAM_CHAT_ID")
+
 	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
 	if err != nil {
 		fmt.Println("Error parsing chat ID:", err)
 		return
 	}
 
-	targetDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC) 
-	sokrDate := time.Date(2025, time.June, 10, 0, 0, 0, 0, time.UTC) 
+	targetDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC)
+	probationDate := time.Date(2025, time.June, 10, 0, 0, 0, 0, time.UTC)
 
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  token,
@@ -58,15 +69,21 @@ func main() {
 	})
 
 	bot.Handle("/sokr", func(c telebot.Context) error {
-		daysSince := calculateDaysTill(sokrDate)
-		message := fmt.Sprintf("Диларе до конца испыталки %d дней", daysSince)
+		daysTill := calculateDaysTill(probationDate)
+		message := fmt.Sprintf("Диларе до конца испыталки %d дней", daysTill)
 		return c.Send(message)
 	})
 
-	c := cron.New(cron.WithLocation(time.FixedZone("MSK", 3*60*60))) 
+	c := cron.New(cron.WithLocation(time.FixedZone("MSK", 3*60*60)))
 	_, err = c.AddFunc("0 12 * * *", func() {
-		sendMessage(bot, targetDate, "Маша не выходит замуж %d дней", chatID)
-		sendMessage(bot, sokrDate, "Диларе до конца испыталки %d дней", chatID)
+		sendMessage(bot, targetDate, "Masha", "Маша не выходит замуж %d дней", chatID)
+
+		currentDate := time.Now()
+		if probationDate.After(currentDate) {
+			sendMessage(bot, probationDate, "Dilara", "Диларе до конца испыталки %d дней", chatID)
+		} else {
+			sendMessage(bot, probationDate, "Dilara", "Дилара закрыла испыталку %d дней назад", chatID)
+		}
 	})
 
 	if err != nil {
@@ -75,6 +92,5 @@ func main() {
 	}
 
 	c.Start()
-
 	bot.Start()
 }
