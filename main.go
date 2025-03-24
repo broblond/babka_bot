@@ -76,7 +76,7 @@ func main() {
 	})
 
 	bot.Handle("/dasha_probation", func(c telebot.Context) error {
-		daysTill := calculateDaysTill(probationDate)
+		daysTill := calculateDaysTill(probationDateDasha)
 		message := fmt.Sprintf("Даше до конца испыталки %d дней", daysTill)
 		return c.Send(message)
 	})
@@ -88,10 +88,14 @@ func main() {
 		currentDate := time.Now()
 		if probationDate.After(currentDate) {
 			sendMessage(bot, probationDate, "Dilara", "Диларе до конца испыталки %d дней", chatID)
-			sendMessage(bot, probationDate, "Dasha", "Даше до конца испыталки %d дней", chatID)
 		} else {
 			sendMessage(bot, probationDate, "Dilara", "Дилара закрыла испыталку %d дней назад", chatID)
-			sendMessage(bot, probationDate, "Dasha", "Даша закрыла испыталку %d дней назад", chatID)
+		}
+		
+		if probationDateDasha.After(currentDate) {
+			sendMessage(bot, probationDateDasha, "Dasha", "Даше до конца испыталки %d дней", chatID)
+		} else {
+			sendMessage(bot, probationDateDasha, "Dasha", "Даша закрыла испыталку %d дней назад", chatID)
 		}
 	})
 
