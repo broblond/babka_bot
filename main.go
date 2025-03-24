@@ -51,6 +51,7 @@ func main() {
 
 	targetDate := time.Date(2020, time.January, 6, 0, 0, 0, 0, time.UTC)
 	probationDate := time.Date(2025, time.June, 10, 0, 0, 0, 0, time.UTC)
+	probationDateDasha := time.Date(2025, time.September, 17, 0, 0, 0, 0, time.UTC)
 
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  token,
@@ -74,6 +75,12 @@ func main() {
 		return c.Send(message)
 	})
 
+	bot.Handle("/dasha_probation", func(c telebot.Context) error {
+		daysTill := calculateDaysTill(probationDateDasha)
+		message := fmt.Sprintf("Даше до конца испыталки %d дней", daysTill)
+		return c.Send(message)
+	})
+
 	c := cron.New(cron.WithLocation(time.FixedZone("MSK", 3*60*60)))
 	_, err = c.AddFunc("0 12 * * *", func() {
 		sendMessage(bot, targetDate, "Masha", "Маша не выходит замуж %d дней", chatID)
@@ -83,6 +90,12 @@ func main() {
 			sendMessage(bot, probationDate, "Dilara", "Диларе до конца испыталки %d дней", chatID)
 		} else {
 			sendMessage(bot, probationDate, "Dilara", "Дилара закрыла испыталку %d дней назад", chatID)
+		}
+		
+		if probationDateDasha.After(currentDate) {
+			sendMessage(bot, probationDateDasha, "Dasha", "Даше до конца испыталки %d дней", chatID)
+		} else {
+			sendMessage(bot, probationDateDasha, "Dasha", "Даша закрыла испыталку %d дней назад", chatID)
 		}
 	})
 
